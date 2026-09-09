@@ -23,6 +23,23 @@ class CanvasRenderer {
   }
 
   /**
+   * Evaluate state binding path (e.g. "user.displayName") against mock data
+   */
+  evaluateBinding(path) {
+    if (!path || !this.app.mockData) return null;
+    const parts = path.split('.');
+    let curr = this.app.mockData;
+    for (let p of parts) {
+      if (curr && curr[p] !== undefined) {
+        curr = curr[p];
+      } else {
+        return null;
+      }
+    }
+    return curr;
+  }
+
+  /**
    * Converts a Yoga node definition into an HTML DOM element.
    */
   createDOMNode(node, selectedNodeId) {
@@ -39,14 +56,14 @@ class CanvasRenderer {
     el.style.flexDirection = s.flexDirection || 'column';
     el.style.justifyContent = s.justifyContent || 'flex-start';
     el.style.alignItems = s.alignItems || 'stretch';
+    if (s.alignSelf) el.style.alignSelf = s.alignSelf;
     el.style.flexGrow = s.flexGrow !== undefined ? s.flexGrow : 0;
     el.style.flexShrink = s.flexShrink !== undefined ? s.flexShrink : 1;
     if (s.flexBasis) el.style.flexBasis = typeof s.flexBasis === 'number' ? `${s.flexBasis}px` : s.flexBasis;
 
     if (s.width) el.style.width = typeof s.width === 'number' ? `${s.width}px` : s.width;
     if (s.height) el.style.height = typeof s.height === 'number' ? `${s.height}px` : s.height;
-    if (s.minWidth) el.style.minWidth = typeof s.minWidth === 'number' ? `${s.minWidth}px` : s.minWidth;
-    if (s.minHeight) el.style.minHeight = typeof s.minHeight === 'number' ? `${s.minHeight}px` : s.minHeight;
+    if (s.aspectRatio) el.style.aspectRatio = s.aspectRatio;
 
     if (s.padding) el.style.padding = `${s.padding}px`;
     if (s.margin) el.style.margin = `${s.margin}px`;
@@ -64,11 +81,14 @@ class CanvasRenderer {
     if (props.backgroundColor) el.style.backgroundColor = props.backgroundColor;
     if (props.borderRadius) el.style.borderRadius = `${props.borderRadius}px`;
 
+    // State Binding Resolution
+    const boundVal = node.bindings && node.bindings.stateBind ? this.evaluateBinding(node.bindings.stateBind) : null;
+
     // Render node-type specific element previews
     switch (node.type) {
       case 'Text': {
         const textSpan = document.createElement('span');
-        textSpan.textContent = props.text || 'Text Label';
+        textSpan.textContent = boundVal !== null ? boundVal : (props.text || 'Text Label');
         textSpan.style.color = props.textColor || '#111827';
         textSpan.style.fontSize = `${props.fontSize || 14}px`;
         el.appendChild(textSpan);
@@ -76,7 +96,7 @@ class CanvasRenderer {
       }
       case 'Button': {
         const btn = document.createElement('button');
-        btn.textContent = props.text || 'Button';
+        btn.textContent = boundVal !== null ? boundVal : (props.text || 'Button');
         btn.style.width = '100%';
         btn.style.height = '100%';
         btn.style.padding = '8px 16px';
@@ -91,7 +111,7 @@ class CanvasRenderer {
       }
       case 'Image': {
         const img = document.createElement('img');
-        img.src = props.src || 'https://via.placeholder.com/150';
+        img.src = boundVal !== null ? boundVal : (props.src || 'https://via.placeholder.com/150');
         img.style.width = '100%';
         img.style.height = '100%';
         img.style.objectFit = 'cover';
@@ -103,6 +123,7 @@ class CanvasRenderer {
         const input = document.createElement('input');
         input.type = 'text';
         input.placeholder = props.placeholder || 'Enter text...';
+        if (boundVal !== null) input.value = boundVal;
         input.style.width = '100%';
         input.style.padding = '8px 12px';
         input.style.border = '1px solid #d1d5db';

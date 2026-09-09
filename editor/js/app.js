@@ -59,6 +59,12 @@ class VisualEditorApp {
     };
 
     this.schema = JSON.parse(JSON.stringify(this.defaultDashboard));
+    this.mockData = {
+      user: {
+        displayName: "Alex Rivera",
+        role: "Senior Native Mobile Developer"
+      }
+    };
     this.selectedNodeId = "rootContainer";
     this.currentLanguage = "dart";
 
@@ -199,6 +205,60 @@ class VisualEditorApp {
       }
     }
     return null;
+  }
+
+  findParentAndIndex(parent, id) {
+    if (!parent.children) return null;
+    for (let i = 0; i < parent.children.length; i++) {
+      if (parent.children[i].id === id) {
+        return { parent, index: i };
+      }
+      const found = this.findParentAndIndex(parent.children[i], id);
+      if (found) return found;
+    }
+    return null;
+  }
+
+  deleteNode(id) {
+    if (id === this.schema.root.id) return; // cannot delete root
+    const match = this.findParentAndIndex(this.schema.root, id);
+    if (match) {
+      match.parent.children.splice(match.index, 1);
+      this.selectedNodeId = match.parent.id;
+      this.notifyUpdate();
+    }
+  }
+
+  duplicateNode(id) {
+    if (id === this.schema.root.id) return;
+    const match = this.findParentAndIndex(this.schema.root, id);
+    if (match) {
+      const original = match.parent.children[match.index];
+      const clone = JSON.parse(JSON.stringify(original));
+
+      const refreshIds = (node) => {
+        node.id = `${node.type.toLowerCase()}_${Date.now().toString().slice(-4)}_${Math.floor(Math.random()*100)}`;
+        if (node.children) node.children.forEach(refreshIds);
+      };
+      refreshIds(clone);
+
+      match.parent.children.splice(match.index + 1, 0, clone);
+      this.selectedNodeId = clone.id;
+      this.notifyUpdate();
+    }
+  }
+
+  moveNode(id, direction) {
+    const match = this.findParentAndIndex(this.schema.root, id);
+    if (match) {
+      const newIdx = match.index + direction;
+      if (newIdx >= 0 && newIdx < match.parent.children.length) {
+        const temp = match.parent.children[match.index];
+        match.parent.children[match.index] = match.parent.children[newIdx];
+        match.parent.children[newIdx] = temp;
+        this.notifyUpdate();
+      }
+    }
   }
 
   addComponentNode(type) {

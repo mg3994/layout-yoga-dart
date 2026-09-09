@@ -64,10 +64,48 @@ ${methodsCode}
   }
 
   /**
+   * Recursively build Swift YogaKit layout nodes
+   */
+  static _buildSwiftNodeTree(node, varName = "rootView") {
+    let lines = [];
+    const s = node.style || {};
+
+    lines.push(`            // Node: ${node.id} (${node.type})`);
+
+    if (varName !== "rootView") {
+      const viewClass = node.type === 'Button' ? 'UIButton()' : node.type === 'Text' ? 'UILabel()' : node.type === 'Image' ? 'UIImageView()' : node.type === 'TextInput' ? 'UITextField()' : 'UIView()';
+      lines.push(`            let ${node.id} = ${viewClass}`);
+      lines.push(`            ${varName}.addSubview(${node.id})`);
+    }
+
+    const currentVar = varName === "rootView" ? "rootView" : node.id;
+
+    lines.push(`            ${currentVar}.configureLayout { layout in`);
+    lines.push(`                layout.isEnabled = true`);
+    if (s.flexDirection) lines.push(`                layout.flexDirection = .${s.flexDirection.replace('-reverse', 'Reverse')}`);
+    if (s.justifyContent) lines.push(`                layout.justifyContent = .${s.justifyContent.replace('-start', 'Start').replace('-end', 'End').replace('-between', 'Between').replace('-around', 'Around').replace('-evenly', 'Evenly')}`);
+    if (s.alignItems) lines.push(`                layout.alignItems = .${s.alignItems.replace('-start', 'Start').replace('-end', 'End')}`);
+    if (s.flexGrow !== undefined) lines.push(`                layout.flexGrow = ${s.flexGrow}`);
+    if (s.width) lines.push(`                layout.width = YGValue(${typeof s.width === 'number' ? s.width : 'rootView.bounds.width'})`);
+    if (s.height) lines.push(`                layout.height = YGValue(${typeof s.height === 'number' ? s.height : 'rootView.bounds.height'})`);
+    if (s.padding) lines.push(`                layout.padding = YGValue(${s.padding})`);
+    lines.push(`            }`);
+
+    if (node.children) {
+      node.children.forEach(c => {
+        lines.push(CodeGenerator._buildSwiftNodeTree(c, currentVar));
+      });
+    }
+
+    return lines.join('\n');
+  }
+
+  /**
    * Generate iOS Swift Native View Code using YogaKit
    */
   static generateSwiftCode(schema) {
     const className = schema.dartModule || 'UIController';
+    const treeCode = CodeGenerator._buildSwiftNodeTree(schema.root, "rootView");
 
     return `// ${className}.swift - Generated Swift + YogaKit View for iOS
 import UIKit
@@ -82,12 +120,7 @@ public class ${className}: NSObject {
             guard let window = UIApplication.shared.windows.first(where: { $0.isKeyWindow }),
                   let rootView = window.rootViewController?.view else { return }
 
-            rootView.configureLayout { layout in
-                layout.isEnabled = true
-                layout.flexDirection = .column
-                layout.width = YGValue(rootView.bounds.width)
-                layout.height = YGValue(rootView.bounds.height)
-            }
+${treeCode}
 
             rootView.yoga.applyLayout(preservingOrigin: true)
         }
@@ -98,10 +131,41 @@ public class ${className}: NSObject {
   }
 
   /**
+   * Recursively build Kotlin Yoga layout nodes
+   */
+  static _buildKotlinNodeTree(node, parentVar = "rootNode") {
+    let lines = [];
+    const s = node.style || {};
+    const nodeVar = `${node.id}Node`;
+
+    lines.push(`        // Node: ${node.id} (${node.type})`);
+    lines.push(`        val ${nodeVar} = YogaNodeFactory.create()`);
+    if (s.flexDirection) lines.push(`        ${nodeVar}.flexDirection = YogaFlexDirection.${s.flexDirection.toUpperCase().replace('-', '_')}`);
+    if (s.justifyContent) lines.push(`        ${nodeVar}.justifyContent = YogaJustify.${s.justifyContent.toUpperCase().replace('-', '_')}`);
+    if (s.flexGrow !== undefined) lines.push(`        ${nodeVar}.flexGrow = ${s.flexGrow}f`);
+    if (s.width && typeof s.width === 'number') lines.push(`        ${nodeVar}.setWidth(${s.width}f)`);
+    if (s.height && typeof s.height === 'number') lines.push(`        ${nodeVar}.setHeight(${s.height}f)`);
+    if (s.padding) lines.push(`        ${nodeVar}.setPadding(YogaEdge.ALL, ${s.padding}f)`);
+
+    if (parentVar !== nodeVar) {
+      lines.push(`        ${parentVar}.addChildAt(${nodeVar}, ${parentVar}.childCount)`);
+    }
+
+    if (node.children) {
+      node.children.forEach(c => {
+        lines.push(CodeGenerator._buildKotlinNodeTree(c, nodeVar));
+      });
+    }
+
+    return lines.join('\n');
+  }
+
+  /**
    * Generate Android Kotlin Native Layout Code using Yoga
    */
   static generateKotlinCode(schema) {
     const className = schema.dartModule || 'UIController';
+    const treeCode = CodeGenerator._buildKotlinNodeTree(schema.root, "rootNode");
 
     return `// ${className}.kt - Generated Kotlin + Yoga Layout for Android
 package com.example.nativeui
@@ -109,6 +173,8 @@ package com.example.nativeui
 import android.content.Context
 import com.facebook.yoga.YogaNodeFactory
 import com.facebook.yoga.YogaFlexDirection
+import com.facebook.yoga.YogaJustify
+import com.facebook.yoga.YogaEdge
 import com.dartnative.dart_native.DartNativeInterface
 import com.dartnative.dart_native.annotation.InterfaceEntry
 import com.dartnative.dart_native.annotation.InterfaceMethod
@@ -119,7 +185,8 @@ class ${className} : DartNativeInterface() {
     @InterfaceMethod(name = "renderLayout")
     fun renderLayout(layoutData: Map<String, Any>): Boolean {
         val rootNode = YogaNodeFactory.create()
-        rootNode.flexDirection = YogaFlexDirection.COLUMN
+
+${treeCode}
 
         // Yoga native layout calculation
         rootNode.calculateLayout(1080f, 2340f)

@@ -114,8 +114,11 @@
           <button class="tab-btn" data-tab="tab-bindings">
             <i class="fa-solid fa-plug"></i> Bindings
           </button>
+          <button class="tab-btn" data-tab="tab-mock">
+            <i class="fa-solid fa-database"></i> Mock State
+          </button>
           <button class="tab-btn" data-tab="tab-code">
-            <i class="fa-solid fa-code"></i> Code Generator
+            <i class="fa-solid fa-code"></i> Code
           </button>
         </div>
 
@@ -129,6 +132,14 @@
           <div id="dart-bindings-panel">
             <!-- DartNative action & state bindings -->
           </div>
+        </div>
+
+        <div class="tab-content" id="tab-mock">
+          <div style="margin-bottom: 8px; font-size: 0.78rem; color: var(--text-muted);">
+            Define JSON state data to substitute into state bindings (e.g. <code>stateBind: "user.displayName"</code>):
+          </div>
+          <textarea id="mock-data-editor" class="form-control" style="height: 250px; font-family: var(--font-mono); font-size: 0.78rem;" spellcheck="false"></textarea>
+          <button id="btn-apply-mock-data" class="btn primary" style="width: 100%; margin-top: 8px;">Apply Mock State</button>
         </div>
 
         <div class="tab-content" id="tab-code">
