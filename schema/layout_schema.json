@@ -1,0 +1,97 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "YogaDartNativeLayoutSchema",
+  "type": "object",
+  "properties": {
+    "version": {
+      "type": "string",
+      "default": "1.0.0"
+    },
+    "screenName": {
+      "type": "string",
+      "description": "Name of the UI screen / module (e.g. UserProfileScreen)"
+    },
+    "dartModule": {
+      "type": "string",
+      "description": "Dart class/module name for DartNative binding"
+    },
+    "root": {
+      "$ref": "#/definitions/layoutNode"
+    }
+  },
+  "required": ["version", "screenName", "dartModule", "root"],
+  "definitions": {
+    "layoutNode": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the layout node"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["Container", "Text", "Image", "Button", "TextInput", "ScrollView"],
+          "default": "Container"
+        },
+        "props": {
+          "type": "object",
+          "properties": {
+            "text": { "type": "string" },
+            "src": { "type": "string" },
+            "placeholder": { "type": "string" },
+            "backgroundColor": { "type": "string" },
+            "textColor": { "type": "string" },
+            "fontSize": { "type": "number" },
+            "borderRadius": { "type": "number" }
+          }
+        },
+        "style": {
+          "type": "object",
+          "properties": {
+            "flexDirection": { "type": "string", "enum": ["column", "row", "column-reverse", "row-reverse"], "default": "column" },
+            "justifyContent": { "type": "string", "enum": ["flex-start", "center", "flex-end", "space-between", "space-around", "space-evenly"], "default": "flex-start" },
+            "alignItems": { "type": "string", "enum": ["flex-start", "center", "flex-end", "stretch", "baseline"], "default": "stretch" },
+            "flexGrow": { "type": "number", "default": 0 },
+            "flexShrink": { "type": "number", "default": 1 },
+            "flexBasis": { "type": ["string", "number"], "default": "auto" },
+            "width": { "type": ["string", "number"] },
+            "height": { "type": ["string", "number"] },
+            "minWidth": { "type": ["string", "number"] },
+            "maxWidth": { "type": ["string", "number"] },
+            "minHeight": { "type": ["string", "number"] },
+            "maxHeight": { "type": ["string", "number"] },
+            "padding": { "type": "number" },
+            "paddingInline": { "type": "number" },
+            "paddingBlock": { "type": "number" },
+            "margin": { "type": "number" },
+            "marginInline": { "type": "number" },
+            "marginBlock": { "type": "number" },
+            "rowGap": { "type": "number" },
+            "columnGap": { "type": "number" },
+            "position": { "type": "string", "enum": ["relative", "absolute"], "default": "relative" },
+            "top": { "type": ["string", "number"] },
+            "bottom": { "type": ["string", "number"] },
+            "left": { "type": ["string", "number"] },
+            "right": { "type": ["string", "number"] }
+          }
+        },
+        "bindings": {
+          "type": "object",
+          "description": "DartNative event & action bindings",
+          "properties": {
+            "onClick": { "type": "string", "description": "Dart method name called on button click" },
+            "onChanged": { "type": "string", "description": "Dart method name called when input changes" },
+            "stateBind": { "type": "string", "description": "Dart reactive property binding for text/value" }
+          }
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/layoutNode"
+          }
+        }
+      },
+      "required": ["id", "type", "style"]
+    }
+  }
+}

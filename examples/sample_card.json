@@ -1,0 +1,90 @@
+{
+  "version": "1.0.0",
+  "screenName": "ResponsiveProductCardScreen",
+  "dartModule": "ProductCardController",
+  "root": {
+    "id": "cardRoot",
+    "type": "Container",
+    "props": {
+      "backgroundColor": "#ffffff",
+      "borderRadius": 16
+    },
+    "style": {
+      "flexDirection": "column",
+      "padding": 20,
+      "margin": 16,
+      "rowGap": 12
+    },
+    "children": [
+      {
+        "id": "productImage",
+        "type": "Image",
+        "props": {
+          "src": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e",
+          "borderRadius": 12
+        },
+        "style": {
+          "width": "100%",
+          "height": 200
+        }
+      },
+      {
+        "id": "titleRow",
+        "type": "Container",
+        "style": {
+          "flexDirection": "row",
+          "justifyContent": "space-between",
+          "alignItems": "center"
+        },
+        "children": [
+          {
+            "id": "productTitle",
+            "type": "Text",
+            "props": {
+              "text": "Wireless Noise-Canceling Headphones",
+              "textColor": "#0f172a",
+              "fontSize": 18
+            },
+            "bindings": {
+              "stateBind": "product.title"
+            },
+            "style": {
+              "flexGrow": 1
+            }
+          },
+          {
+            "id": "productPrice",
+            "type": "Text",
+            "props": {
+              "text": "$299.99",
+              "textColor": "#2563eb",
+              "fontSize": 18
+            },
+            "bindings": {
+              "stateBind": "product.price"
+            },
+            "style": {}
+          }
+        ]
+      },
+      {
+        "id": "buyButton",
+        "type": "Button",
+        "props": {
+          "text": "Buy Now with DartNative",
+          "backgroundColor": "#2563eb",
+          "textColor": "#ffffff",
+          "borderRadius": 8
+        },
+        "style": {
+          "height": 44,
+          "justifyContent": "center",
+          "alignItems": "center"
+        },
+        "bindings": {
+          "onClick": "handleBuyButtonClick"
+        }
+      }
+    ]
+  }
+}
