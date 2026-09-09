@@ -64,6 +64,72 @@ ${methodsCode}
   }
 
   /**
+   * Generate iOS Swift Native View Code using YogaKit
+   */
+  static generateSwiftCode(schema) {
+    const className = schema.dartModule || 'UIController';
+
+    return `// ${className}.swift - Generated Swift + YogaKit View for iOS
+import UIKit
+import YogaKit
+import dart_native
+
+@objc(${className})
+public class ${className}: NSObject {
+
+    @objc public func renderLayout(_ layoutData: [String: Any]) -> Bool {
+        DispatchQueue.main.async {
+            guard let window = UIApplication.shared.windows.first(where: { $0.isKeyWindow }),
+                  let rootView = window.rootViewController?.view else { return }
+
+            rootView.configureLayout { layout in
+                layout.isEnabled = true
+                layout.flexDirection = .column
+                layout.width = YGValue(rootView.bounds.width)
+                layout.height = YGValue(rootView.bounds.height)
+            }
+
+            rootView.yoga.applyLayout(preservingOrigin: true)
+        }
+        return true
+    }
+}
+`;
+  }
+
+  /**
+   * Generate Android Kotlin Native Layout Code using Yoga
+   */
+  static generateKotlinCode(schema) {
+    const className = schema.dartModule || 'UIController';
+
+    return `// ${className}.kt - Generated Kotlin + Yoga Layout for Android
+package com.example.nativeui
+
+import android.content.Context
+import com.facebook.yoga.YogaNodeFactory
+import com.facebook.yoga.YogaFlexDirection
+import com.dartnative.dart_native.DartNativeInterface
+import com.dartnative.dart_native.annotation.InterfaceEntry
+import com.dartnative.dart_native.annotation.InterfaceMethod
+
+@InterfaceEntry(name = "${className}")
+class ${className} : DartNativeInterface() {
+
+    @InterfaceMethod(name = "renderLayout")
+    fun renderLayout(layoutData: Map<String, Any>): Boolean {
+        val rootNode = YogaNodeFactory.create()
+        rootNode.flexDirection = YogaFlexDirection.COLUMN
+
+        // Yoga native layout calculation
+        rootNode.calculateLayout(1080f, 2340f)
+        return true
+    }
+}
+`;
+  }
+
+  /**
    * Generate iOS Objective-C Native View Code using YogaKit
    */
   static generateObjectiveCCode(schema) {

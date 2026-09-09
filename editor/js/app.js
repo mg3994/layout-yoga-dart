@@ -3,81 +3,44 @@
  */
 class VisualEditorApp {
   constructor() {
-    this.schema = {
+    this.defaultDashboard = {
       version: "1.0.0",
       screenName: "ProfileDashboardScreen",
       dartModule: "ProfileDashboardController",
       root: {
         id: "rootContainer",
         type: "Container",
-        props: {
-          backgroundColor: "#f3f4f6"
-        },
-        style: {
-          flexDirection: "column",
-          justifyContent: "flex-start",
-          alignItems: "stretch",
-          flexGrow: 1,
-          padding: 16,
-          rowGap: 16
-        },
+        props: { backgroundColor: "#f3f4f6" },
+        style: { flexDirection: "column", justifyContent: "flex-start", alignItems: "stretch", flexGrow: 1, padding: 16, rowGap: 16 },
         children: [
           {
             id: "headerCard",
             type: "Container",
-            props: {
-              backgroundColor: "#ffffff",
-              borderRadius: 12
-            },
-            style: {
-              flexDirection: "row",
-              alignItems: "center",
-              padding: 16,
-              columnGap: 16
-            },
+            props: { backgroundColor: "#ffffff", borderRadius: 12 },
+            style: { flexDirection: "row", alignItems: "center", padding: 16, columnGap: 16 },
             children: [
               {
                 id: "userAvatar",
                 type: "Image",
-                props: {
-                  src: "https://via.placeholder.com/60",
-                  borderRadius: 30
-                },
-                style: {
-                  width: 60,
-                  height: 60
-                }
+                props: { src: "https://via.placeholder.com/60", borderRadius: 30 },
+                style: { width: 60, height: 60 }
               },
               {
                 id: "userInfoCol",
                 type: "Container",
-                style: {
-                  flexDirection: "column",
-                  flexGrow: 1,
-                  rowGap: 4
-                },
+                style: { flexDirection: "column", flexGrow: 1, rowGap: 4 },
                 children: [
                   {
                     id: "userNameText",
                     type: "Text",
-                    props: {
-                      text: "Alex Rivera",
-                      textColor: "#111827",
-                      fontSize: 18
-                    },
-                    bindings: {
-                      stateBind: "user.displayName"
-                    },
+                    props: { text: "Alex Rivera", textColor: "#111827", fontSize: 18 },
+                    bindings: { stateBind: "user.displayName" },
                     style: {}
                   },
                   {
                     id: "userRoleText",
                     type: "Text",
-                    props: {
-                      text: "Senior Native Mobile Developer",
-                      textColor: "#6b7280",
-                      fontSize: 13
-                    },
+                    props: { text: "Senior Native Mobile Developer", textColor: "#6b7280", fontSize: 13 },
                     style: {}
                   }
                 ]
@@ -87,27 +50,21 @@ class VisualEditorApp {
           {
             id: "actionButton",
             type: "Button",
-            props: {
-              text: "Connect via DartNative",
-              backgroundColor: "#6366f1",
-              textColor: "#ffffff",
-              borderRadius: 8
-            },
-            style: {
-              height: 48,
-              justifyContent: "center",
-              alignItems: "center"
-            },
-            bindings: {
-              onClick: "onConnectButtonPressed"
-            }
+            props: { text: "Connect via DartNative", backgroundColor: "#6366f1", textColor: "#ffffff", borderRadius: 8 },
+            style: { height: 48, justifyContent: "center", alignItems: "center" },
+            bindings: { onClick: "onConnectButtonPressed" }
           }
         ]
       }
     };
 
+    this.schema = JSON.parse(JSON.stringify(this.defaultDashboard));
     this.selectedNodeId = "rootContainer";
     this.currentLanguage = "dart";
+
+    // Undo / Redo Stacks
+    this.history = [JSON.stringify(this.schema)];
+    this.historyIndex = 0;
 
     this.renderer = new CanvasRenderer(this);
     this.inspector = new PropertyInspector(this);
@@ -118,10 +75,35 @@ class VisualEditorApp {
     this.render();
   }
 
+  pushState() {
+    const currentState = JSON.stringify(this.schema);
+    if (this.history[this.historyIndex] === currentState) return;
+
+    this.history = this.history.slice(0, this.historyIndex + 1);
+    this.history.push(currentState);
+    this.historyIndex = this.history.length - 1;
+  }
+
+  undo() {
+    if (this.historyIndex > 0) {
+      this.historyIndex--;
+      this.schema = JSON.parse(this.history[this.historyIndex]);
+      this.render();
+    }
+  }
+
+  redo() {
+    if (this.historyIndex < this.history.length - 1) {
+      this.historyIndex++;
+      this.schema = JSON.parse(this.history[this.historyIndex]);
+      this.render();
+    }
+  }
+
   bindEvents() {
-    // Palette Drag / Click Add
+    // Component Palette Click Add
     document.querySelectorAll('.palette-item').forEach(btn => {
-      btn.addEventListener('click', (e) => {
+      btn.addEventListener('click', () => {
         const type = btn.getAttribute('data-type');
         this.addComponentNode(type);
       });
@@ -129,14 +111,12 @@ class VisualEditorApp {
 
     // Device Viewport Switcher
     document.querySelectorAll('.device-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
+      btn.addEventListener('click', () => {
         document.querySelectorAll('.device-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         const device = btn.getAttribute('data-device');
         const frame = document.getElementById('device-frame');
-        if (frame) {
-          frame.className = `device-frame ${device}`;
-        }
+        if (frame) frame.className = `device-frame ${device}`;
       });
     });
 
@@ -160,6 +140,34 @@ class VisualEditorApp {
         this.updateCodePreview();
       });
     });
+
+    // Template Selector
+    document.getElementById('template-selector')?.addEventListener('change', (e) => {
+      const val = e.target.value;
+      if (val === 'profileDashboard') {
+        this.schema = JSON.parse(JSON.stringify(this.defaultDashboard));
+      } else if (typeof PRESET_TEMPLATES !== 'undefined' && PRESET_TEMPLATES[val]) {
+        this.schema = JSON.parse(JSON.stringify(PRESET_TEMPLATES[val]));
+      } else {
+        return;
+      }
+      this.selectedNodeId = this.schema.root.id;
+      this.pushState();
+      this.render();
+    });
+
+    // Copy Code Button
+    document.getElementById('btn-copy-code')?.addEventListener('click', () => {
+      const code = document.getElementById('code-output')?.textContent;
+      if (code) {
+        navigator.clipboard.writeText(code);
+        alert('Code copied to clipboard!');
+      }
+    });
+
+    // Undo / Redo Buttons
+    document.getElementById('btn-undo')?.addEventListener('click', () => this.undo());
+    document.getElementById('btn-redo')?.addEventListener('click', () => this.redo());
 
     // Export Buttons
     document.getElementById('btn-export-json')?.addEventListener('click', () => {
@@ -205,16 +213,16 @@ class VisualEditorApp {
         text: type === 'Text' ? 'New Text' : type === 'Button' ? 'New Button' : '',
         placeholder: type === 'TextInput' ? 'Enter text...' : ''
       },
-      style: {
-        padding: 8
-      }
+      style: { padding: 8 }
     };
 
     parent.children.push(newNode);
     this.selectNode(newId);
+    this.pushState();
   }
 
   notifyUpdate() {
+    this.pushState();
     this.render();
   }
 
@@ -233,6 +241,12 @@ class VisualEditorApp {
     switch (this.currentLanguage) {
       case 'dart':
         output = CodeGenerator.generateDartCode(this.schema);
+        break;
+      case 'swift':
+        output = CodeGenerator.generateSwiftCode(this.schema);
+        break;
+      case 'kotlin':
+        output = CodeGenerator.generateKotlinCode(this.schema);
         break;
       case 'objc':
         output = CodeGenerator.generateObjectiveCCode(this.schema);

@@ -12,16 +12,23 @@ function runCLI() {
 Yoga & DartNative Layout Code Generator CLI
 
 Usage:
-  node cli/bin/generate.js <path-to-layout-schema.json> [output-dir]
+  node cli/bin/generate.js <path-to-layout-schema.json> [output-dir] [--targets swift,kotlin,objc,java,dart]
 
 Options:
-  --help, -h    Show this help message
+  --targets, -t  Comma-separated list of code targets (swift, kotlin, objc, java, dart). Default: all
+  --help, -h     Show this help message
 `);
     process.exit(0);
   }
 
   const inputFile = path.resolve(args[0]);
-  const outputDir = path.resolve(args[1] || './generated_native');
+  const outputDir = path.resolve(args[1] && !args[1].startsWith('-') ? args[1] : './generated_native');
+
+  let targets = ['swift', 'kotlin', 'objc', 'java', 'dart'];
+  const targetsIdx = args.findIndex(a => a === '--targets' || a === '-t');
+  if (targetsIdx !== -1 && args[targetsIdx + 1]) {
+    targets = args[targetsIdx + 1].split(',').map(t => t.trim().toLowerCase());
+  }
 
   if (!fs.existsSync(inputFile)) {
     console.error(`Error: File not found at path '${inputFile}'`);
@@ -38,25 +45,44 @@ Options:
 
     const className = schema.dartModule || 'UIController';
 
-    // Generate Dart Controller
-    const dartCode = CodeGenerator.generateDartCode(schema);
-    const dartFile = path.join(outputDir, `${className.toLowerCase()}_controller.dart`);
-    fs.writeFileSync(dartFile, dartCode, 'utf8');
+    console.log(`\n Generating native UI bridge files in '${outputDir}':`);
 
-    // Generate iOS Objective-C Yoga View
-    const objcCode = CodeGenerator.generateObjectiveCCode(schema);
-    const objcFile = path.join(outputDir, `${className}.m`);
-    fs.writeFileSync(objcFile, objcCode, 'utf8');
+    if (targets.includes('dart')) {
+      const code = CodeGenerator.generateDartCode(schema);
+      const file = path.join(outputDir, `${className.toLowerCase()}_controller.dart`);
+      fs.writeFileSync(file, code, 'utf8');
+      console.log(`  - Dart Controller:   ${file}`);
+    }
 
-    // Generate Android Java Yoga View
-    const javaCode = CodeGenerator.generateJavaCode(schema);
-    const javaFile = path.join(outputDir, `${className}.java`);
-    fs.writeFileSync(javaFile, javaCode, 'utf8');
+    if (targets.includes('swift')) {
+      const code = CodeGenerator.generateSwiftCode(schema);
+      const file = path.join(outputDir, `${className}.swift`);
+      fs.writeFileSync(file, code, 'utf8');
+      console.log(`  - iOS Swift View:    ${file}`);
+    }
 
-    console.log(`\n Successfully generated native UI bridge files in '${outputDir}':`);
-    console.log(`  - Dart Controller:   ${dartFile}`);
-    console.log(`  - iOS YogaKit View:  ${objcFile}`);
-    console.log(`  - Android Yoga View: ${javaFile}\n`);
+    if (targets.includes('kotlin')) {
+      const code = CodeGenerator.generateKotlinCode(schema);
+      const file = path.join(outputDir, `${className}.kt`);
+      fs.writeFileSync(file, code, 'utf8');
+      console.log(`  - Android Kotlin:   ${file}`);
+    }
+
+    if (targets.includes('objc')) {
+      const code = CodeGenerator.generateObjectiveCCode(schema);
+      const file = path.join(outputDir, `${className}.m`);
+      fs.writeFileSync(file, code, 'utf8');
+      console.log(`  - iOS YogaKit Obj-C: ${file}`);
+    }
+
+    if (targets.includes('java')) {
+      const code = CodeGenerator.generateJavaCode(schema);
+      const file = path.join(outputDir, `${className}.java`);
+      fs.writeFileSync(file, code, 'utf8');
+      console.log(`  - Android Java View: ${file}`);
+    }
+
+    console.log(`\n Done!\n`);
 
   } catch (err) {
     console.error(`Failed to process layout schema: ${err.message}`);

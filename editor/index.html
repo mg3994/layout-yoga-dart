@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Yoga & DartNative Responsive UI Visual Editor</title>
   <link rel="stylesheet" href="styles.css">
-  <!-- FontAwesome / Icons if needed -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
@@ -21,26 +20,32 @@
       <div class="top-controls">
         <div class="device-selector">
           <button class="device-btn active" data-device="iphone-14">
-            <i class="fa-solid fa-mobile-screen"></i> iPhone 14 Pro (393 x 852)
+            <i class="fa-solid fa-mobile-screen"></i> iPhone 14 Pro
           </button>
           <button class="device-btn" data-device="pixel-7">
-            <i class="fa-brands fa-android"></i> Pixel 7 Pro (412 x 892)
+            <i class="fa-brands fa-android"></i> Pixel 7 Pro
           </button>
           <button class="device-btn" data-device="ipad">
-            <i class="fa-solid fa-tablet-screen-button"></i> iPad Mini (744 x 1133)
+            <i class="fa-solid fa-tablet-screen-button"></i> iPad Mini
           </button>
           <button class="device-btn" data-device="responsive">
-            <i class="fa-solid fa-expand"></i> Responsive Canvas
+            <i class="fa-solid fa-expand"></i> Responsive
           </button>
         </div>
       </div>
 
       <div class="actions">
+        <select id="template-selector" class="btn secondary" style="cursor: pointer;">
+          <option value="">📁 Preset Templates</option>
+          <option value="profileDashboard">Profile Dashboard</option>
+          <option value="loginScreen">Login Screen</option>
+          <option value="settingsMenu">Settings Menu</option>
+        </select>
         <button id="btn-export-json" class="btn secondary">
           <i class="fa-solid fa-file-code"></i> Schema JSON
         </button>
         <button id="btn-export-code" class="btn primary">
-          <i class="fa-solid fa-bolt"></i> Export Dart & Native Code
+          <i class="fa-solid fa-bolt"></i> Export Code
         </button>
       </div>
     </header>
@@ -76,7 +81,7 @@
         <div class="panel-section flex-1 tree-section">
           <h3><i class="fa-solid fa-sitemap"></i> Component Tree</h3>
           <div id="tree-view" class="tree-container">
-            <!-- Populated dynamically via JavaScript -->
+            <!-- Populated dynamically -->
           </div>
         </div>
       </aside>
@@ -86,9 +91,8 @@
         <div class="canvas-toolbar">
           <span class="canvas-info" id="canvas-dim-info">393 x 852 px</span>
           <div class="zoom-controls">
-            <button id="zoom-out"><i class="fa-solid fa-minus"></i></button>
-            <span id="zoom-level">100%</span>
-            <button id="zoom-in"><i class="fa-solid fa-plus"></i></button>
+            <button id="btn-undo" title="Undo"><i class="fa-solid fa-rotate-left"></i></button>
+            <button id="btn-redo" title="Redo"><i class="fa-solid fa-rotate-right"></i></button>
           </div>
         </div>
 
@@ -108,10 +112,10 @@
             <i class="fa-solid fa-sliders"></i> Inspector
           </button>
           <button class="tab-btn" data-tab="tab-bindings">
-            <i class="fa-solid fa-plug"></i> Dart Bindings
+            <i class="fa-solid fa-plug"></i> Bindings
           </button>
           <button class="tab-btn" data-tab="tab-code">
-            <i class="fa-solid fa-code"></i> Generated Code
+            <i class="fa-solid fa-code"></i> Code Generator
           </button>
         </div>
 
@@ -130,10 +134,17 @@
         <div class="tab-content" id="tab-code">
           <div class="code-preview-container">
             <div class="code-subtabs">
-              <button class="subtab-btn active" data-lang="dart">Dart Controller</button>
-              <button class="subtab-btn" data-lang="objc">iOS (YogaKit)</button>
-              <button class="subtab-btn" data-lang="java">Android (Yoga)</button>
-              <button class="subtab-btn" data-lang="json">Schema JSON</button>
+              <button class="subtab-btn active" data-lang="dart">Dart</button>
+              <button class="subtab-btn" data-lang="swift">Swift</button>
+              <button class="subtab-btn" data-lang="kotlin">Kotlin</button>
+              <button class="subtab-btn" data-lang="objc">Obj-C</button>
+              <button class="subtab-btn" data-lang="java">Java</button>
+              <button class="subtab-btn" data-lang="json">JSON</button>
+            </div>
+            <div style="display: flex; justify-content: flex-end; margin-bottom: 6px;">
+              <button id="btn-copy-code" class="btn secondary" style="padding: 3px 8px; font-size: 0.72rem;">
+                <i class="fa-regular fa-copy"></i> Copy Code
+              </button>
             </div>
             <pre><code id="code-output">// Select a layout node or click "Export Code"</code></pre>
           </div>
@@ -145,6 +156,7 @@
   <script src="js/canvas.js"></script>
   <script src="js/inspector.js"></script>
   <script src="js/codegen.js"></script>
+  <script src="js/templates.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>
