@@ -66,19 +66,20 @@ ${methodsCode}
   /**
    * Recursively build Swift YogaKit layout nodes
    */
-  static _buildSwiftNodeTree(node, varName = "rootView") {
+  static _buildSwiftNodeTree(node, parentVar = null) {
     let lines = [];
     const s = node.style || {};
+    const nodeVar = node.id;
 
     lines.push(`            // Node: ${node.id} (${node.type})`);
 
-    if (varName !== "rootView") {
+    if (parentVar) {
       const viewClass = node.type === 'Button' ? 'UIButton()' : node.type === 'Text' ? 'UILabel()' : node.type === 'Image' ? 'UIImageView()' : node.type === 'TextInput' ? 'UITextField()' : 'UIView()';
-      lines.push(`            let ${node.id} = ${viewClass}`);
-      lines.push(`            ${varName}.addSubview(${node.id})`);
+      lines.push(`            let ${nodeVar} = ${viewClass}`);
+      lines.push(`            ${parentVar}.addSubview(${nodeVar})`);
     }
 
-    const currentVar = varName === "rootView" ? "rootView" : node.id;
+    const currentVar = parentVar ? nodeVar : "rootView";
 
     lines.push(`            ${currentVar}.configureLayout { layout in`);
     lines.push(`                layout.isEnabled = true`);
@@ -268,6 +269,42 @@ public class ${className} extends DartNativeInterface {
         rootNode.calculateLayout(1080, 2340);
         return true;
     }
+}
+`;
+  }
+
+  /**
+   * Generate Theme Token Dart Constants
+   */
+  static generateThemeTokensDart(tokens) {
+    const t = tokens || {
+      primaryColor: '#6366f1',
+      secondaryColor: '#10b981',
+      backgroundColor: '#0f172a',
+      textColor: '#ffffff',
+      fontFamily: 'Inter',
+      borderRadius: 12
+    };
+
+    return `// theme_tokens.dart - Generated Theme Token System
+import 'package:flutter/material.dart';
+
+class AppThemeTokens {
+  static const Color primary = Color(${t.primaryColor.replace('#', '0xFF')});
+  static const Color secondary = Color(${t.secondaryColor.replace('#', '0xFF')});
+  static const Color background = Color(${t.backgroundColor.replace('#', '0xFF')});
+  static const Color text = Color(${t.textColor.replace('#', '0xFF')});
+
+  static const String fontFamily = '${t.fontFamily}';
+  static const double borderRadius = ${t.borderRadius}.0;
+
+  static ThemeData get materialTheme {
+    return ThemeData(
+      primaryColor: primary,
+      scaffoldBackgroundColor: background,
+      fontFamily: fontFamily,
+    );
+  }
 }
 `;
   }

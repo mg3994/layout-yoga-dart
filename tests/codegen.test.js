@@ -62,4 +62,10 @@ assert.ok(flutterZeroYaml.includes('bridge_class: TestController'));
 assert.ok(flutterZeroYaml.includes('zero_overhead_direct_dispatch: true'));
 console.log('✔ Flutter Zero YAML generator passed.');
 
-console.log('\nAll 6 CodeGenerator tests passed successfully!\n');
+// 7. Test Theme Tokens Generation
+const themeCode = CodeGenerator.generateThemeTokensDart();
+assert.ok(themeCode.includes('class AppThemeTokens'));
+assert.ok(themeCode.includes('static const Color primary'));
+console.log('✔ Theme tokens generator passed.');
+
+console.log('\nAll 7 CodeGenerator tests passed successfully!\n');
