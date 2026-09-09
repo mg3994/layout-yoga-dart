@@ -30,6 +30,8 @@ Options:
     targets = args[targetsIdx + 1].split(',').map(t => t.trim().toLowerCase());
   }
 
+  const exportFlutterZero = args.includes('--flutter-zero');
+
   if (!fs.existsSync(inputFile)) {
     console.error(`Error: File not found at path '${inputFile}'`);
     process.exit(1);
@@ -80,6 +82,13 @@ Options:
       const file = path.join(outputDir, `${className}.java`);
       fs.writeFileSync(file, code, 'utf8');
       console.log(`  - Android Java View: ${file}`);
+    }
+
+    if (exportFlutterZero || targets.includes('flutterzero')) {
+      const code = CodeGenerator.generateFlutterZeroYaml(schema);
+      const file = path.join(outputDir, `flutter_zero.yaml`);
+      fs.writeFileSync(file, code, 'utf8');
+      console.log(`  - Flutter Zero Config: ${file}`);
     }
 
     console.log(`\n Done!\n`);

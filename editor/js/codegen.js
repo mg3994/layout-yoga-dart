@@ -271,6 +271,41 @@ public class ${className} extends DartNativeInterface {
 }
 `;
   }
+
+  /**
+   * Generate flutter_zero.yaml manifest for flutter_zero_tools integration
+   */
+  static generateFlutterZeroYaml(schema) {
+    const className = schema.dartModule || 'UIController';
+    const screenName = schema.screenName || 'Screen';
+
+    return `# flutter_zero.yaml - Flutter Zero Tools Native Binding Manifest
+name: ${screenName.toLowerCase()}_native_module
+version: 1.0.0
+description: Zero-overhead Yoga Layout and DartNative bridge specification for ${screenName}
+
+flutter_zero:
+  targets:
+    ios:
+      framework: YogaKit
+      bridge_class: ${className}
+      language: swift
+      source_path: ios/Runner/${className}.swift
+    android:
+      framework: facebook_yoga
+      bridge_class: com.example.nativeui.${className}
+      language: kotlin
+      source_path: android/app/src/main/kotlin/com/example/nativeui/${className}.kt
+
+  bindings:
+    module: ${className}
+    schema_path: assets/layouts/${screenName.toLowerCase()}_layout.json
+    hot_reload: true
+    codegen:
+      ffi_stubs: lib/generated/${className.toLowerCase()}_stubs.dart
+      zero_overhead_direct_dispatch: true
+`;
+  }
 }
 
 if (typeof module !== 'undefined' && module.exports) {

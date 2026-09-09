@@ -302,6 +302,9 @@ class VisualEditorApp {
       case 'dart':
         output = CodeGenerator.generateDartCode(this.schema);
         break;
+      case 'flutterzero':
+        output = CodeGenerator.generateFlutterZeroYaml(this.schema);
+        break;
       case 'swift':
         output = CodeGenerator.generateSwiftCode(this.schema);
         break;

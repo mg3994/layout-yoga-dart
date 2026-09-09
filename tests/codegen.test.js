@@ -55,4 +55,11 @@ assert.ok(javaCode.includes('public class TestController extends DartNativeInter
 assert.ok(javaCode.includes('YogaNodeFactory.create()'));
 console.log('✔ Java code generator passed.');
 
-console.log('\nAll 5 CodeGenerator tests passed successfully!\n');
+// 6. Test Flutter Zero Generation
+const flutterZeroYaml = CodeGenerator.generateFlutterZeroYaml(sampleSchema);
+assert.ok(flutterZeroYaml.includes('flutter_zero:'));
+assert.ok(flutterZeroYaml.includes('bridge_class: TestController'));
+assert.ok(flutterZeroYaml.includes('zero_overhead_direct_dispatch: true'));
+console.log('✔ Flutter Zero YAML generator passed.');
+
+console.log('\nAll 6 CodeGenerator tests passed successfully!\n');

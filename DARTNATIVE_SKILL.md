@@ -63,6 +63,13 @@ Unlike traditional Flutter Channels which incur serialization, deserialization, 
 - Uses `source_gen` and `build_runner` in Dart.
 - Generates strongly typed bridging code and handles automatic type conversion (e.g. Dart `String`, `num`, `List`, `Map` <-> Native `NSString`/`String`, `NSNumber`/`Primitive`, `NSArray`/`List`, `NSDictionary`/`Map`).
 
+### 2.4 Flutter Zero Tools Integration (`flutter_zero_tools`)
+`flutter_zero_tools` is a modified build and tooling framework based on `flutter_tools` designed for zero-overhead DartNative execution:
+- **Build Pipeline Injection**: Hooks into standard `flutter build` and `flutter run` steps to parse UI schema definitions and `@InterfaceEntry` annotations prior to Dart kernel compilation.
+- **`flutter_zero.yaml` Manifest**: Declarative configuration specifying native target platforms, Yoga C++ layout libraries, and FFI header export paths.
+- **Zero-Reflection C++/JNI/Obj-C Stubs**: Automatically emits native binding code during build time, eliminating runtime reflection and channel marshalling costs completely.
+- **Hot Layout Reloading**: Communicates with Yoga Native Studio during development mode to stream updated layout node structures directly to connected native device view trees without full app restarts.
+
 ---
 
 ## 3. Yoga Layout Engine Mechanics
